@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
 import connectDB from "./configs/connectDB.js";
+import userRouter from "./routes/user.route.js";
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,9 @@ const PORT = process.env.PORT || 3000;
 app.get("/test", (req, res) => {
   res.status(200).json({ msg: "This is Test Route" });
 });
+
+
+app.use("/api/user", userRouter)
 
 app.get((req, res) => {
   res.status(404).json({ msg: "This is invalid Route..." });
