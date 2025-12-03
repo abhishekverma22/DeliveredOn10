@@ -3,6 +3,8 @@ import UserModel from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import verifyEmailTemplate from "../utils/verifyEmailTemplate.js";
 import { sendError } from "../utils/response.js";
+import generatedAccessToken from "../utils/generatedAccessToken.js";
+import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 
 export const registerUserController = async (req, res) => {
   try {
@@ -79,6 +81,38 @@ export const verifyEmailController = async (req, res) => {
 // Login controller
 export const loginController = async (req, res) => {
   try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        msg: "User not Found...",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (user.status !== "Active") {
+      return res.status(403).json({
+        msg: `Account is ${user.status}. Please contact support.`,
+        error: true,
+        success: false,
+      });
+    }
+
+    const isPasswordMatch = await bcryptjs.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(400).json({
+        msg: "Invalid credentials",
+        error: true,
+        success: false,
+      });
+    }
+
+    const accessToken = await generatedAccessToken(user._id);
+    const refreshToken = await generatedRefreshToken(user._id);
+    res.cookie("accessToken", accessToken, )
   } catch (error) {
     return sendError(res, error.message || error);
   }
